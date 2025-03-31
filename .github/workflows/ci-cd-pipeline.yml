@@ -24,20 +24,33 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      # Build and push Docker images for vote, result, and worker only
       - name: Build and push Docker images
         uses: docker/build-push-action@v6
         with:
           push: true
-          context: ./ 
-          dockerfile: ./vote/Dockerfile
+          context: .  # The build context should be the root of the repo
+          file: ./vote/Dockerfile  # Dockerfile for vote
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/vote:${{ env.IMAGE_TAG }}
             ${{ secrets.DOCKER_USERNAME }}/vote:latest
-          dockerfile: ./result/Dockerfile
+          
+      - name: Build and push Docker image for result
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          context: .  # The build context should be the root of the repo
+          file: ./result/Dockerfile  # Dockerfile for result
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/result:${{ env.IMAGE_TAG }}
             ${{ secrets.DOCKER_USERNAME }}/result:latest
-          dockerfile: ./worker/Dockerfile
+
+      - name: Build and push Docker image for worker
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          context: .  # The build context should be the root of the repo
+          file: ./worker/Dockerfile  # Dockerfile for worker
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/worker:${{ env.IMAGE_TAG }}
             ${{ secrets.DOCKER_USERNAME }}/worker:latest
