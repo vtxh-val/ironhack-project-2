@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: result-container
-        image: valerietxh/result:latest 
+        image: valerietxh/result:${IMAGE_TAG}
         env:
         - name: POSTGRES_HOST
           value: "postgres-service"

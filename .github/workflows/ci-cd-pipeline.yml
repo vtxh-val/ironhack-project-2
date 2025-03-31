@@ -31,7 +31,6 @@ jobs:
           context: ./vote 
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/vote:${{ env.IMAGE_TAG }}
-            ${{ secrets.DOCKER_USERNAME }}/vote:latest
           
       - name: Build and push Docker image for result
         uses: docker/build-push-action@v6
@@ -40,7 +39,6 @@ jobs:
           context: ./result 
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/result:${{ env.IMAGE_TAG }}
-            ${{ secrets.DOCKER_USERNAME }}/result:latest
 
       - name: Build and push Docker image for worker
         uses: docker/build-push-action@v6
@@ -49,7 +47,6 @@ jobs:
           context: ./worker  
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/worker:${{ env.IMAGE_TAG }}
-            ${{ secrets.DOCKER_USERNAME }}/worker:latest
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -70,6 +67,12 @@ jobs:
         run: |
           aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ secrets.AWS_CLUSTER }}
 
+      - name: Update Image Tags in YAML
+        run: |
+          sed -i "s|\${IMAGE_TAG}|${{ env.IMAGE_TAG }}|g" backend-result.yaml
+          sed -i "s|\${IMAGE_TAG}|${{ env.IMAGE_TAG }}|g" backend-worker.yaml
+          sed -i "s|\${IMAGE_TAG}|${{ env.IMAGE_TAG }}|g" frontend-vote.yaml
+
       - name: Deploy to EKS
         run: |
           kubectl apply -f backend-redis.yaml
@@ -79,3 +82,9 @@ jobs:
           kubectl apply -f frontend-vote.yaml
           kubectl apply -f ingress.yaml
           kubectl apply -f storageclass-gp2.yaml
+
+      - name: Restart Deployments to Pull Latest Image # Need this because Kubernetes does not automatically pull a new image if the tag remains the same
+        run: |
+          kubectl rollout restart deployment/backend-result
+          kubectl rollout restart deployment/backend-worker
+          kubectl rollout restart deployment/frontend-vote

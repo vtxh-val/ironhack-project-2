@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: vote-container
-        image: valerietxh/vote:latest
+        image: valerietxh/vote:${IMAGE_TAG}
         ports:
           - containerPort: 80
         env:
