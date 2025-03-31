@@ -24,6 +24,8 @@ spec:
           value: "5432"
         - name: POSTGRES_DB
           value: "basic3tier"
+        - name: PG_DATABASE
+          value: "basic3tier"
         - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
@@ -39,16 +41,7 @@ spec:
             secretKeyRef:
               name: db-credentials
               key: PG_PASSWORD
-        - name: PG_DATABASE
-          valueFrom:
-            secretKeyRef:
-              name: db-credentials
-              key: PG_DATABASE
-        - name: POSTGRES_DATABASE
-          valueFrom:
-            secretKeyRef:
-              name: db-credentials
-              key: POSTGRES_DATABASE
+
 ---
 apiVersion: v1
 kind: Service
