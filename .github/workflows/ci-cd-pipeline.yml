@@ -29,8 +29,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          context: .  # The build context should be the root of the repo
-          file: ./vote/Dockerfile  # Dockerfile for vote
+          context: ./vote  # The build context should be the root of the repo
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/vote:${{ env.IMAGE_TAG }}
             ${{ secrets.DOCKER_USERNAME }}/vote:latest
@@ -39,8 +38,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          context: .  # The build context should be the root of the repo
-          file: ./result/Dockerfile  # Dockerfile for result
+          context: ./result  # The build context should be the root of the repo
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/result:${{ env.IMAGE_TAG }}
             ${{ secrets.DOCKER_USERNAME }}/result:latest
@@ -49,8 +47,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          context: .  # The build context should be the root of the repo
-          file: ./worker/Dockerfile  # Dockerfile for worker
+          context: ./worker  # The build context should be the root of the repo
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/worker:${{ env.IMAGE_TAG }}
             ${{ secrets.DOCKER_USERNAME }}/worker:latest
