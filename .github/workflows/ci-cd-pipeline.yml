@@ -28,11 +28,17 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
+          context: ./ 
+          dockerfile: ./vote/Dockerfile
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/vote:${{ env.IMAGE_TAG }}
             ${{ secrets.DOCKER_USERNAME }}/vote:latest
+          dockerfile: ./result/Dockerfile
+          tags: |
             ${{ secrets.DOCKER_USERNAME }}/result:${{ env.IMAGE_TAG }}
             ${{ secrets.DOCKER_USERNAME }}/result:latest
+          dockerfile: ./worker/Dockerfile
+          tags: |
             ${{ secrets.DOCKER_USERNAME }}/worker:${{ env.IMAGE_TAG }}
             ${{ secrets.DOCKER_USERNAME }}/worker:latest
 
