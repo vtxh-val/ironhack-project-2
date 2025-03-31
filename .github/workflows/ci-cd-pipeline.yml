@@ -24,12 +24,11 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Build and push Docker images for vote, result, and worker only
       - name: Build and push Docker images
         uses: docker/build-push-action@v6
         with:
           push: true
-          context: ./vote  # The build context should be the root of the repo
+          context: ./vote 
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/vote:${{ env.IMAGE_TAG }}
             ${{ secrets.DOCKER_USERNAME }}/vote:latest
@@ -38,7 +37,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          context: ./result  # The build context should be the root of the repo
+          context: ./result 
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/result:${{ env.IMAGE_TAG }}
             ${{ secrets.DOCKER_USERNAME }}/result:latest
@@ -47,7 +46,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          context: ./worker  # The build context should be the root of the repo
+          context: ./worker  
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/worker:${{ env.IMAGE_TAG }}
             ${{ secrets.DOCKER_USERNAME }}/worker:latest
@@ -65,7 +64,7 @@ jobs:
           chmod +x ./kubectl
           mkdir -p $HOME/bin
           mv ./kubectl $HOME/bin/kubectl
-          echo "::add-path::$HOME/bin"
+          echo "$HOME/bin" >> $GITHUB_PATH  # Use the new method to add to PATH
 
       - name: Update kubeconfig for EKS
         run: |
