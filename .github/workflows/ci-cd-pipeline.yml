@@ -83,8 +83,8 @@ jobs:
           kubectl apply -f ingress.yaml
           kubectl apply -f storageclass-gp2.yaml
 
-      - name: Restart Deployments to Pull Latest Image # Need this because Kubernetes does not automatically pull a new image if the tag remains the same
+      - name: Restart Deployments to Pull Latest Image # Need this because Kubernetes does not automatically pull a new image if the tag remains similar
         run: |
-          kubectl rollout restart deployment/backend-result
-          kubectl rollout restart deployment/backend-worker
-          kubectl rollout restart deployment/frontend-vote
+          kubectl rollout restart deployment/result-deployment
+          kubectl rollout restart deployment/worker-deployment
+          kubectl rollout restart deployment/vote-deployment
