@@ -32,10 +32,12 @@ spec:
       - name: postgres-container
         image: postgres:15
         env:
+        - name: PG_HOST
+          value: "postgres-service"
         - name: POSTGRES_DB
-          value: "votes"
+          value: "basic3tier"
         - name: PG_DATABASE
-          value: "votes"
+          value: "basic3tier"
         - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:

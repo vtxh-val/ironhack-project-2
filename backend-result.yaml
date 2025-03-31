@@ -23,9 +23,9 @@ spec:
         - name: POSTGRES_PORT
           value: "5432"
         - name: POSTGRES_DB
-          value: "votes"
+          value: "basic3tier"
         - name: PG_DATABASE
-          value: "votes"
+          value: "basic3tier"
         - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
