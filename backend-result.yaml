@@ -17,7 +17,7 @@ spec:
         image: valerietxh/result:${IMAGE_TAG}
         env:
         - name: PG_HOST
-          value: "postgres-service"
+          value: "postgres-replicas"
         - name: PG_PORT
           value: "5432"
         - name: PG_DATABASE
