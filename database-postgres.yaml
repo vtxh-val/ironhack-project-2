@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -19,11 +20,12 @@ spec:
         command: ["sh", "-c"]
         args:
           - |
-            if [ "$(hostname)" != "postgres-0" ]; then
-              echo "Configuring as a replica..."
+            if [ "$(hostname)" = "postgres-0" ]; then
+              echo "Primary node"
+            else
+              echo "Replica node"
               echo "standby_mode = 'on'" > /var/lib/postgresql/data/recovery.conf
               echo "primary_conninfo = 'host=postgres-0.postgres-service'" >> /var/lib/postgresql/data/recovery.conf
-              kubectl label pod $(hostname) role=replica --overwrite  # Dynamically label as a replica
             fi
         volumeMounts:
         - name: postgres-storage
@@ -46,8 +48,6 @@ spec:
               key: POSTGRES_PASSWORD
         - name: PGDATA
           value: "/var/lib/postgresql/data/pgdata"
-        - name: POSTGRES_PRIMARY
-          value: "postgres-0.postgres-service"
         ports:
         - containerPort: 5432
         volumeMounts:
@@ -58,7 +58,7 @@ spec:
       name: postgres-storage
     spec:
       accessModes:
-        - ReadWriteOnce  # Primary gets RWO
+        - ReadWriteOnce
       resources:
         requests:
           storage: 5Gi
@@ -85,7 +85,11 @@ metadata:
   name: postgres-replicas
 spec:
   selector:
-    role: replica  # Only replicas
+    matchExpressions:
+    - key: statefulset.kubernetes.io/pod-name
+      operator: NotIn
+      values:
+        - postgres-0
   ports:
     - protocol: TCP
       port: 5432
