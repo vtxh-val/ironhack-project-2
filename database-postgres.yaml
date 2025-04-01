@@ -104,25 +104,10 @@ spec:
       name: postgres-storage
     spec:
       accessModes: ["ReadWriteOnce"]
+      storageClassName: val-gp2
       resources:
         requests:
           storage: 5Gi
-
----
-# ---------------------------------
-# PERSISTENT VOLUME CLAIMS FOR EACH REPLICA
-# ---------------------------------
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: postgres-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
-  storageClassName: val-gp2
 
 ---
 # ---------------------------------
