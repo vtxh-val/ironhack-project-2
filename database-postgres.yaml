@@ -1,10 +1,67 @@
+# ---------------------------------
+# ETCD CLUSTER (FOR PATRONI LEADER ELECTION)
+# ---------------------------------
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: etcd
+spec:
+  serviceName: "etcd"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: etcd
+  template:
+    metadata:
+      labels:
+        app: etcd
+    spec:
+      containers:
+      - name: etcd
+        image: quay.io/coreos/etcd:v3.5.0
+        command:
+        - etcd
+        - --name=$(POD_NAME)
+        - --data-dir=/var/lib/etcd
+        - --initial-cluster-state=new
+        - --initial-cluster-token=etcd-cluster
+        - --initial-cluster=etcd-0=http://etcd-0.etcd:2380,etcd-1=http://etcd-1.etcd:2380,etcd-2=http://etcd-2.etcd:2380
+        - --advertise-client-urls=http://$(POD_IP):2379
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        ports:
+        - containerPort: 2379
+        - containerPort: 2380
+        volumeMounts:
+        - name: etcd-storage
+          mountPath: /var/lib/etcd
+  volumeClaimTemplates:
+  - metadata:
+      name: etcd-storage
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
+
+---
+# ---------------------------------
+# POSTGRESQL WITH PATRONI FOR AUTOMATIC FAILOVER
+# ---------------------------------
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: postgres
 spec:
   serviceName: "postgres-service"
-  replicas: 1
+  replicas: 2  # Two replicas for HA
   selector:
     matchLabels:
       app: postgres
@@ -15,8 +72,16 @@ spec:
     spec:
       containers:
       - name: postgres-container
-        image: postgres:15
+        image: patroni:latest  # Patroni for HA
         env:
+        - name: PATRONI_SCOPE
+          value: "pg-cluster"
+        - name: PATRONI_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: PATRONI_ETCD_URL
+          value: "http://etcd-0.etcd:2379,http://etcd-1.etcd:2379,http://etcd-2.etcd:2379"
         - name: POSTGRES_DB
           value: "basic3tier"
         - name: POSTGRES_USER
@@ -34,13 +99,19 @@ spec:
         volumeMounts:
         - name: postgres-storage
           mountPath: /var/lib/postgresql/data
-          subPath: postgres
-      volumes:
-      - name: postgres-storage
-        persistentVolumeClaim:
-          claimName: postgres-pvc
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-storage
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 5Gi
 
 ---
+# ---------------------------------
+# PERSISTENT VOLUME CLAIMS FOR EACH REPLICA
+# ---------------------------------
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -54,6 +125,9 @@ spec:
   storageClassName: val-gp2
 
 ---
+# ---------------------------------
+# PRIMARY SERVICE (FOR WRITES)
+# ---------------------------------
 apiVersion: v1
 kind: Service
 metadata:
@@ -65,4 +139,22 @@ spec:
     - protocol: TCP
       port: 5432
       targetPort: 5432
-  clusterIP: None 
+  clusterIP: None  # Headless service for Patroni leader election
+
+---
+# ---------------------------------
+# READ SERVICE (FOR READ BALANCING)
+# ---------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-read-service
+spec:
+  selector:
+    app: postgres
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  sessionAffinity: None
+  type: ClusterIP
