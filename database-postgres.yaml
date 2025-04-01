@@ -5,7 +5,7 @@ metadata:
   name: postgres
 spec:
   serviceName: "postgres-service"
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       app: postgres
@@ -85,13 +85,7 @@ metadata:
   name: postgres-replicas
 spec:
   selector:
-    matchLabels:
-      app: postgres  # This label must match your pod labels
-    matchExpressions:
-      - key: statefulset.kubernetes.io/pod-name
-        operator: NotIn
-        values:
-          - postgres-0
+    app: postgres
   ports:
     - protocol: TCP
       port: 5432
