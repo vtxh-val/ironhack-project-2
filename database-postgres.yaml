@@ -1,11 +1,10 @@
----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: postgres
 spec:
-  serviceName: "postgres-service"
-  replicas: 2
+  serviceName: "postgres"
+  replicas: 3  # 1 primary, 2 replicas
   selector:
     matchLabels:
       app: postgres
@@ -14,24 +13,8 @@ spec:
       labels:
         app: postgres
     spec:
-      initContainers:
-      - name: init-replica
-        image: postgres:15
-        command: ["sh", "-c"]
-        args:
-          - |
-            if [ "$(hostname)" = "postgres-0" ]; then
-              echo "Primary node"
-            else
-              echo "Replica node"
-              echo "standby_mode = 'on'" > /var/lib/postgresql/data/recovery.conf
-              echo "primary_conninfo = 'host=postgres-0.postgres-service'" >> /var/lib/postgresql/data/recovery.conf
-            fi
-        volumeMounts:
-        - name: postgres-storage
-          mountPath: /var/lib/postgresql/data
       containers:
-      - name: postgres-container
+      - name: postgres
         image: postgres:15
         env:
         - name: POSTGRES_DB
@@ -46,8 +29,6 @@ spec:
             secretKeyRef:
               name: db-credentials
               key: POSTGRES_PASSWORD
-        - name: PGDATA
-          value: "/var/lib/postgresql/data/pgdata"
         ports:
         - containerPort: 5432
         volumeMounts:
@@ -57,12 +38,10 @@ spec:
   - metadata:
       name: postgres-storage
     spec:
-      accessModes:
-        - ReadWriteOnce
+      accessModes: ["ReadWriteOnce"]
       resources:
         requests:
           storage: 5Gi
-      storageClassName: val-gp2
 
 ---
 apiVersion: v1
@@ -78,20 +57,15 @@ spec:
       targetPort: 5432
   clusterIP: None
 
-# ---
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: postgres-replicas
-# spec:
-#   selector:
-#     matchExpressions:
-#       - key: statefulset.kubernetes.io/pod-name
-#         operator: NotIn
-#         values:
-#           - postgres-0
-#   ports:
-#     - protocol: TCP
-#       port: 5432
-#       targetPort: 5432
-#   clusterIP: None
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-read
+spec:
+  selector:
+    app: postgres
+  ports:
+    - name: postgres
+      port: 5432
+  type: ClusterIP
