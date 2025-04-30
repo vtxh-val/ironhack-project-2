@@ -18,10 +18,10 @@ WORKDIR /app
 COPY --from=build /app/publish ./
 
 # Set environment variables (can be overridden at runtime)
-ENV DB_HOST=db
-ENV DB_USERNAME=postgres
-ENV DB_PASSWORD=postgres
-ENV DB_NAME=postgres
+ENV DB_HOST=
+ENV DB_USERNAME=
+ENV DB_PASSWORD=
+ENV DB_NAME=
 ENV REDIS_HOST=redis
 
 # Define the entry point
