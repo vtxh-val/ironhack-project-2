@@ -22,6 +22,11 @@ The application code used in the **vote**, **result**, and **worker** services i
     *   Push the images to Docker Hub
     *   Apply Kubernetes manifests to EKS cluster automatically
 
+🔐 Secrets Management
+---------------------
+
+All sensitive data (e.g., Docker credentials, AWS cluster config, and environment variables) are securely stored in **GitHub Secrets** and accessed by GitHub Actions workflows at runtime.
+
 ✅ Outcome
 ---------
 
